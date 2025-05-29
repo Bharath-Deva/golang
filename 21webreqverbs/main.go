@@ -1,8 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -10,13 +11,37 @@ import (
 
 func main() {
 	fmt.Println("Welcome to web verb video - LCO")
-	//PerformGetRequest()
+	PerformGetRequest()
 	// PerformPostJsonRequest()
-	PerformPostFormRequest()
+	// PerformPostFormRequest()
 }
 
 func PerformGetRequest() {
-	const myurl = "http://localhost:8000/get"
+	const myurl = "https://httpbin.org/get"
+
+	response, err := http.Get(myurl)
+	if err != nil {
+		panic(err)
+	}
+	defer response.Body.Close()
+
+	var result map[string]interface{}
+	err = json.NewDecoder(response.Body).Decode(&result)
+	if err != nil {
+		panic(err)
+	}
+
+	// Now you can access it like in JavaScript
+	fmt.Println("URL:", result["url"])
+	fmt.Println("Headers:", result["headers"])
+
+	// Access nested values
+	headers := result["headers"].(map[string]interface{})
+	fmt.Println("User-Agent:", headers["User-Agent"])
+}
+
+func PerformGetRequest() {
+	const myurl = "https://httpbin.org/get"
 
 	response, err := http.Get(myurl)
 	if err != nil {
@@ -29,7 +54,7 @@ func PerformGetRequest() {
 	fmt.Println("Content length is: ", response.ContentLength)
 
 	var responseString strings.Builder
-	content, _ := ioutil.ReadAll(response.Body)
+	content, _ := io.ReadAll(response.Body)
 	byteCount, _ := responseString.Write(content)
 
 	fmt.Println("ByteCount is: ", byteCount)
@@ -59,7 +84,7 @@ func PerformPostJsonRequest() {
 	}
 	defer response.Body.Close()
 
-	content, _ := ioutil.ReadAll(response.Body)
+	content, _ := io.ReadAll(response.Body)
 
 	fmt.Println(string(content))
 }
@@ -81,7 +106,7 @@ func PerformPostFormRequest() {
 
 	defer response.Body.Close()
 
-	content, _ := ioutil.ReadAll(response.Body)
+	content, _ := io.ReadAll(response.Body)
 	fmt.Println(string(content))
 
 }
